@@ -27,6 +27,11 @@ class BlogsTable extends Table
         $this->hasMany('Posts', [
             'foreignKey' => 'blog_id',
         ]);
+         // Add this association
+        $this->belongsTo('Categories', [
+            'foreignKey' => 'category_id', // assuming your blogs table has category_id column
+            'joinType' => 'INNER',
+        ]);
     }
 
     public function validationDefault(Validator $validator): Validator

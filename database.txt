@@ -120,3 +120,75 @@ Connection Classes represent database connections and provide the interface for 
 executing queries means interacting with the database using either the ORM (Object-Relational Mapping), Query Builder, or raw SQL execution.
 
 transactions are used to ensure that a group of database operations are completed successfully as a unit.
+============================================================
+Query Builder 
+https://chatgpt.com/c/6838032e-a6c0-8002-99dd-60b09a8fc836
+
+Query Builder is a powerful, flexible, and secure way to build and execute SQL queries using a fluent, object-oriented API — without writing raw SQL.
+| Function          | Description                       | Example                                  |
+| ----------------- | --------------------------------- | ---------------------------------------- |
+| `count()`         | Counts rows or fields             | `$q->func()->count('*')`                 |
+| `sum()`           | Sums values in a column           | `$q->func()->sum('price')`               |
+| `avg()`           | Averages values in a column       | `$q->func()->avg('rating')`              |
+| `min()` / `max()` | Get min/max value in a column     | `$q->func()->min('created')`             |
+| `concat()`        | Concatenates strings              | `$q->func()->concat([...])`              |
+| `dateDiff()`      | Gets difference between two dates | `$q->func()->dateDiff([...])`            |
+| `now()`           | Gets current date/time            | `$q->func()->now()`                      |
+| `cast()`          | Casts column to a type            | `$q->func()->cast('price', 'DECIMAL')`   |
+| `coalesce()`      | Returns first non-null expression | `$q->func()->coalesce(['col1', 'col2'])` |
+
+queries are lazily evaluated. This is a performance optimization: CakePHP does not run the SQL immediately when you call find() or add conditions like ->where(), ->orderBy(), etc.
+| **Feature**                            | **Purpose / Use**                                                 |
+| -------------------------------------- | ----------------------------------------------------------------- |
+| Query Builder                          | Builds SQL queries with a fluent, chainable API.                  |
+| The SelectQuery Object                 | Represents a SELECT query with customizable methods.              |
+| Selecting Rows From A Table            | Retrieves multiple rows using `find()` and conditions.            |
+| Selecting A Single Row From A Table    | Gets one row using `first()` or unique constraints.               |
+| Getting A List Of Values From A Column | Extracts values from a single column as a list.                   |
+| ResultSet Is A Collection Object       | Supports collection methods like `map()` and `filter()`.          |
+| Queries Are Lazily Evaluated           | Improves performance: queries run only when results are accessed. |
+| Selecting Data                         | Specifies what data columns to fetch.                             |
+| Selecting Specific Fields              | Limits columns to improve performance.                            |
+| Using SQL Functions                    | Applies SQL functions like `COUNT()`, `NOW()` in expressions.     |
+| Window-Only Functions                  | Uses window functions like `RANK()` and `ROW_NUMBER()`.           |
+| Custom Functions                       | Allows defining custom SQL expressions.                           |
+| Ordering Results                       | Sorts query results using `orderBy()`.                            |
+| Limiting Results                       | Limits the number of returned rows.                               |
+| Aggregates - Group and Having          | Groups rows and filters using `group()` and `having()`.           |
+| Case Statements                        | Adds conditional logic with `case()` expressions.                 |
+| Fetching Arrays Instead of Entities    | Returns plain arrays using `enableHydration(false)`.              |
+| Adding Calculated Fields               | Adds computed/derived fields via expressions.                     |
+| Advanced Conditions                    | Supports complex conditional logic.                               |
+| Using Identifiers in Expressions       | Safely quotes field names using `identifier()`.                   |
+| Collation                              | Sets collation for string comparisons.                            |
+| Automatically Creating IN Clauses      | Converts arrays in `where()` into `IN (...)` SQL.                 |
+| Automatic IS NULL Creation             | Converts `null` in `where()` to `IS NULL`.                        |
+| Automatic IS NOT NULL Creation         | Converts `'IS NOT' => null` to `IS NOT NULL`.                     |
+| Raw Expressions                        | Injects raw SQL fragments safely.                                 |
+| Using Connection Roles                 | Uses DB roles (e.g., read/write) for execution.                   |
+| Expression Conjunction                 | Combines expressions with logical `AND`/`OR`.                     |
+| Tuple Comparison                       | Compares multiple fields as a group.                              |
+| Getting Results                        | Executes queries and fetches results.                             |
+| Returning the Total Count of Records   | Uses `count()` to get number of matching rows.                    |
+| Caching Loaded Results                 | Caches results with `cache()` for reuse.                          |
+| Loading Associations                   | Eager loads related data via `contain()`.                         |
+| Passing Conditions to Contain          | Filters associated data using conditions in `contain()`.          |
+| Sorting Contained Associations         | Sorts associated records using `sort()` in `contain()`.           |
+| Filtering by Associated Data           | Filters results based on related table data using `matching()`.   |
+| Using innerJoinWith                    | Performs `INNER JOIN` with associated models.                     |
+| Using notMatching                      | Filters out records with specific associations.                   |
+| Using leftJoinWith                     | Performs `LEFT JOIN` to include unmatched associations.           |
+| Adding Joins                           | Manually adds joins using `join()`.                               |
+| Inserting Data                         | Inserts new records using `newEntity()` and `save()`.             |
+| Updating Data                          | Updates existing records using `patchEntity()` and `save()`.      |
+| Deleting Data                          | Deletes rows via `delete()` or query builder.                     |
+| SQL Injection Prevention               | Secures queries using prepared statements and binding.            |
+| Binding values                         | Binds values safely using `bind()` or placeholders.               |
+| More Complex Queries                   | Builds advanced queries with joins, conditions, and expressions.  |
+| Unions                                 | Combines multiple queries using `union()`.                        |
+| Intersections                          | Returns common results across queries using `intersect()`.        |
+| Subqueries                             | Embeds queries within others for filtering or data extraction.    |
+| Adding Locking Statements              | Locks rows with statements like `FOR UPDATE`.                     |
+| Window Functions                       | Uses analytical SQL functions for row-based stats.                |
+| Common Table Expressions               | Adds modular `WITH` clauses for complex queries.                  |
+| Executing Complex Queries              | Runs advanced raw or structured SQL using the builder.            |
