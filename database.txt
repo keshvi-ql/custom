@@ -1,0 +1,122 @@
+https://chatgpt.com/c/6836b33d-1c18-8002-812f-dccedd1e6bfc
+
+Database Access and ORM (Object-Relational Mapping) provide a structured and secure way to interact with your database using PHP objects rather than writing raw SQL queries.
+database is done with two primary object 
+   ->repositories or table Object 
+   ->Entities 
+
+=======================================
+Database Basics
+The easiest way to create a database connection is using a DSN string
+Running Select Statements = run Select Statement
+Running Insert Statements = insert recode
+Running Update Statements = update recode
+Running Delete Statements = delete the recode
+Configuration = create own Configuration 
+
+✅ Basic Required Settings:
+| Key         | What It Means                                                            |
+| ----------- | ------------------------------------------------------------------------ |
+| `className` | The core class handling database connections (default is fine).          |
+| `driver`    | The database type you're using. Examples: `Mysql`, `Sqlite`, `Postgres`. |
+| `host`      | Hostname where the DB server is running. Usually `localhost`.            |
+| `username`  | Your DB username. Example: `root`.                                       |
+| `password`  | The password for that username.                                          |
+| `database`  | The name of the database you are connecting to.                          |
+
+🎛 Optional but Useful Settings:
+| Key           | Use Case                                                                                    |
+| ------------- | ------------------------------------------------------------------------------------------- |
+| `port`        | Custom DB port. Default is 3306 for MySQL. Set it only if you're using a non-standard port. |
+| `encoding`    | Character set used. Example: `'utf8mb4'` (good for emojis).                                 |
+| `timezone`    | Timezone to use for DB timestamps. Example: `'UTC'`.                                        |
+| `persistent`  | Keeps connection open between requests. Good for performance, but not supported on MSSQL.   |
+| `schema`      | For PostgreSQL: sets the schema to use.                                                     |
+| `unix_socket` | Used instead of host if connecting via a Unix socket (MySQL/Postgres on some servers).      |
+
+🔒 SSL Security Options (MySQL Only):
+| Key        | Use For                      |
+| ---------- | ---------------------------- |
+| `ssl_key`  | Path to SSL key file         |
+| `ssl_cert` | Path to SSL certificate file |
+| `ssl_ca`   | Path to CA certificate file  |
+
+⚙️ Other Helpful Settings:
+| Key                | Description                                                               |
+| ------------------ | ------------------------------------------------------------------------- |
+| `init`             | Run SQL when connection starts. Example: `['SET time_zone = "+00:00"']`.  |
+| `log`              | If `true`, logs all SQL queries (great for debugging).                    |
+| `quoteIdentifiers` | Use this if you use special characters or reserved words in column names. |
+| `flags`            | Extra PDO options. Mostly used for advanced configurations.               |
+| `cacheMetadata`    | If `true`, speeds up performance by caching table metadata. Recommended!  |
+
+🔸 SQLite-Specific Settings (Ignore if using MySQL/PostgreSQL):
+| Key     | What It Does                             |
+| ------- | ---------------------------------------- |
+| `mask`  | Sets permissions for created SQLite file |
+| `cache` | Sets SQLite caching behavior             |
+| `mode`  | Sets access mode for SQLite (read/write) |
+
+🧠 Naming Conventions (VERY IMPORTANT)
+| Item          | Convention                                                 |
+| ------------- | ---------------------------------------------------------- |
+| Table names   | lowercase, plural, snake\_case → `blog_posts`              |
+| Table classes | PascalCase, ends with `Table` → `BlogPostsTable`           |
+| Controller    | PascalCase, ends with `Controller` → `BlogPostsController` |
+
+==============================
+Read and Write Connections refer to a database scaling technique that allows you to separate database read and write operations across different servers.
+
+Managing Connections refers to the way you configure, retrieve, and use database connections in your application
+
+Accessing Connections means retrieving a configured database connection to interact directly with the database—either to run raw SQL, perform inserts/updates/deletes, or execute custom queries outside of the ORM.
+
+Creating Connections at Runtime means defining a new database connection dynamically (in code) rather than in the config/app.php or app_local.php configuration files.
+
+Data Types system provides a way to abstract and standardize how different databases handle various column types
+| Abstract Type    | Maps To (DB Equivalent)                              | Notes                           |
+| ---------------- | ---------------------------------------------------- | ------------------------------- |
+| `string`         | `VARCHAR`, or `NVARCHAR` in SQL Server               | Regular text                    |
+| `char`           | `CHAR` or `NCHAR`                                    | Fixed-length text               |
+| `text`           | `TEXT`, `CLOB`, etc.                                 | For long text                   |
+| `uuid`           | `CHAR(36)` if native UUID not available              | Universally Unique ID           |
+| `binaryuuid`     | `BINARY(16)` or native UUID                          | Compressed UUID                 |
+| `nativeuuid`     | `UUID` for MariaDB/MySQL; alias for `uuid` otherwise | For native UUID support         |
+| `integer`        | `INT`, `INTEGER`                                     | Whole numbers                   |
+| `smallinteger`   | `SMALLINT`                                           | Smaller whole numbers           |
+| `tinyinteger`    | `TINYINT(1)` in MySQL                                | Often used as boolean           |
+| `biginteger`     | `BIGINT`                                             | Large whole numbers             |
+| `float`          | `FLOAT` or `DOUBLE`                                  | Approximate values              |
+| `decimal`        | `DECIMAL`, stored as `string` in PHP                 | Use for exact math (e.g. money) |
+| `boolean`        | `BOOLEAN`, or `TINYINT(1)` in MySQL                  | True/false                      |
+| `binary`         | `BLOB`, `BYTEA`                                      | Raw binary data                 |
+| `date`           | `DATE`                                               | Returns `Cake\I18n\Date`        |
+| `datetime`       | `DATETIME`, returns `Cake\I18n\FrozenTime`           | For full date & time            |
+| `timestamp`      | `TIMESTAMP`                                          | With automatic update           |
+| `time`           | `TIME`                                               | Time only                       |
+| `json`           | `JSON`, or `TEXT` if not supported                   | Stores JSON data                |
+| `enum`           | Enumerated string values                             | Must define allowed values      |
+| `geometry`, etc. | Geospatial types                                     | For location data               |
+
+DateTimeType is a core class that provides a way to handle DATETIME columns in your database using PHP's DateTimeImmutable and CakePHP's enhanced date/time features.
+
+EnumType class allows you to map database columns to PHP Enums, making your code more type-safe, readable, and maintainable.
+
+Geospatial Types refer to special database column types that store geographical or geometric data, such as coordinates and shapes.
+
+custom types let you create your own logic for how data is stored in the database and how it's represented in PHP.
+
+Connecting Custom Datatypes to Schema Reflection and Generation"
+custom datatypes allow you to create your own logic for how specific database fields are:
+   -> Converted from database to PHP (e.g. "456A>G" → array),
+   -> Converted from PHP to database,
+   -> Handled during schema generation (for migrations),
+   -> Handled during schema reflection (for reading DB schemas).
+
+Mapping Custom Datatypes to SQL Expressions means telling CakePHP how to interpret complex SQL column types (like MySQL POINT, JSON, GEOMETRY, etc.) in PHP and vice versa—especially when these values require custom logic to serialize/deserialize or to express in SQL queries.
+
+Connection Classes represent database connections and provide the interface for executing queries, transactions, and schema management.
+
+executing queries means interacting with the database using either the ORM (Object-Relational Mapping), Query Builder, or raw SQL execution.
+
+transactions are used to ensure that a group of database operations are completed successfully as a unit.
