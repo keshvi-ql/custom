@@ -1,3 +1,13 @@
+git clone https://github.com/keshvi-ql/custom.git
+git status
+git add .
+git commit -m "COMMIT_MESSAGE"
+git push -u origin main
+
+username = keshvi-ql
+git = keshvi.g@queueloopsolutions.com
+pass = Keshvi@106
+----------------------------
 https://chatgpt.com/c/6836b33d-1c18-8002-812f-dccedd1e6bfc
 
 Database Access and ORM (Object-Relational Mapping) provide a structured and secure way to interact with your database using PHP objects rather than writing raw SQL queries.
@@ -192,3 +202,62 @@ queries are lazily evaluated. This is a performance optimization: CakePHP does n
 | Window Functions                       | Uses analytical SQL functions for row-based stats.                |
 | Common Table Expressions               | Adds modular `WITH` clauses for complex queries.                  |
 | Executing Complex Queries              | Runs advanced raw or structured SQL using the builder.            |
+
+================================================================================
+https://chatgpt.com/c/68398c7c-0cc4-8002-bf1d-c7081a8725a8
+Table Objects :-  In CakePHP, **Table Objects** represent database tables. 
+                  They provide a way to interact with table data using 
+                  CakePHP's **ORM (Object-Relational Mapping)**.
+ 
+Purpose of Table Objects :-  To handle **CRUD operations**, define 
+                             **associations**, apply **validation**, 
+                             and manage **business logic** related to 
+                             specific database tables.
+Event List
+| **Event Name**        | **Purpose**                                   |
+| --------------------- | --------------------------------------------- |
+| **initialize**        | Setup table (associations, behaviors, config) |
+| **beforeMarshal**     | Modify data before converting to entities     |
+| **afterMarshal**      | Inspect/modify entities after marshaling      |
+| **beforeFind**        | Modify query before fetching data             |
+| **buildValidator**    | Define validation rules                       |
+| **buildRules**        | Define application rules (e.g., foreign keys) |
+| **beforeRules**       | Before rules are checked                      |
+| **afterRules**        | After rules are checked                       |
+| **beforeSave**        | Before saving entity (can cancel save)        |
+| **afterSave**         | After saving, before commit                   |
+| **afterSaveCommit**   | After save transaction committed              |
+| **beforeDelete**      | Before deleting entity (can cancel delete)    |
+| **afterDelete**       | After deleting, before commit                 |
+| **afterDeleteCommit** | After delete transaction committed            |
+
+| **Topic**                        | **Purpose**                                                                |
+| -------------------------------- | -------------------------------------------------------------------------- |
+| **Table Objects**                | Represent and interact with database tables using CakePHP ORM.             |
+| **Basic Usage**                  | Perform CRUD, define associations, and apply table-specific logic.         |
+| **Customizing the Entity Class** | Use a custom class to represent a table row with additional logic.         |
+| **Getting Table Instances**      | Retrieve table objects via `TableLocator` to reuse and manage consistency. |
+| **Lifecycle Callbacks**          | Hook into the ORM process at different stages of entity/table operations.  |
+| **Event List**                   | List of events triggered during ORM operations for customization.          |
+| **initialize**                   | Set up table config, associations, behaviors, and default settings.        |
+| **beforeMarshal**                | Modify or validate raw input data before it's converted into an entity.    |
+| **afterMarshal**                 | Modify or inspect entity after data has been marshaled.                    |
+| **beforeFind**                   | Modify or conditionally handle queries before execution.                   |
+| **buildValidator**               | Define validation rules for incoming data.                                 |
+| **buildRules**                   | Define application-level integrity rules (e.g., unique checks).            |
+| **beforeRules**                  | Called before checking rules, allows short-circuiting.                     |
+| **afterRules**                   | Called after rule checking to inspect results.                             |
+| **beforeSave**                   | Modify or validate entity before saving to DB.                             |
+| **afterSave**                    | Perform actions after entity has been saved.                               |
+| **afterSaveCommit**              | Triggered after DB commit; useful for side effects like notifications.     |
+| **beforeDelete**                 | Inspect or block delete before it happens.                                 |
+| **afterDelete**                  | Actions to perform after deletion of an entity.                            |
+| **afterDeleteCommit**            | Called after delete transaction is committed.                              |
+| **Stopping Table Events**        | Halt event execution or skip further processing during callbacks.          |
+| **Callback priorities**          | Control execution order when multiple listeners are attached.              |
+| **Behaviors**                    | Reusable logic or traits that can be attached to tables (e.g., Timestamp). |
+| **Configuring Connections**      | Use a specific DB connection for a table.                                  |
+| **Using the TableLocator**       | Access and manage all table instances.                                     |
+| **Configuring Table Objects**    | Set options like entity class, table name, and connection.                 |
+| **Flushing the Registry**        | Clear stored table instances from memory (reset TableLocator).             |
+| **Configuring Namespace**        | Set custom namespace to locate your ORM classes (tables/entities).         |

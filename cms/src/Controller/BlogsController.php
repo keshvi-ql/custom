@@ -7,7 +7,11 @@ use Cake\ORM\Locator\LocatorAwareTrait;
 use Cake\ORM\Query;
 use Cake\Database\Expression\QueryExpression;
 use Cake\ORM\TableRegistry;
+use DateTime;
 use Cake\ORM\Query\SelectQuery;
+use Cake\Collection\Collection;
+use Cake\Database\Expression\IdentifierExpression;
+use Cake\Database\Expression\TupleComparison;
 // use Cake\Collection\CollectionInterface;
 // use Cake\I18n\FrozenTime;
 
@@ -797,11 +801,959 @@ class BlogsController extends AppController
         dd($query->all());
     }
 
+    // ---------------Using Identifiers in Expressions-----------
+    public function joinWithCategory()
+    {
+        $query = $this->fetchTable('Blogs')->find()
+            ->select(['Blogs.id', 'Blogs.title', 'Categories.name'])
+            ->innerJoin(['Categories' => 'categories'], ['Blogs.category_id = Categories.id']);
 
+        dd($query->all());
+    }
 
+    // ----------------Collation-------------
+    public function searchBlogTitleWithCollation()
+    {
+        $collation = 'utf8mb4_general_ci'; // ✅ Must match your column charset (utf8mb4)
 
+        $query = $this->fetchTable('Blogs')->find()
+            ->where(function (QueryExpression $exp, Query $q) use ($collation) {
+                // COLLATE directly on the column via IdentifierExpression
+                return $exp->like(
+                    new IdentifierExpression("Blogs.title COLLATE $collation"),
+                    '%qui%' // Try matching "Qui expedita qui" or "Qui veritatis in..."
+                );
+            });
 
+        debug($query->sql()); // Show generated SQL
+        dd($query->all());    // Dump result
+    }
 
+    // ----------Automatically Creating IN Clauses-----------
+    public function inClauseWithTypeCasting()
+    {
+        $categoryIds = [1, 2, 5]; // Example category IDs from your `categories` table
+
+        $query = $this->fetchTable('Blogs')->find()
+            ->where(['category_id' => $categoryIds], ['category_id' => 'integer[]']);
+
+        debug($query->sql()); // Show the generated SQL
+        dd($query->all());    // Dump result set
+    }
+    public function inClauseUsingInKeyword()
+    {
+        $categoryIds = [1, 2, 5];
+
+        $query = $this->fetchTable('Blogs')->find()
+            ->where(['category_id IN' => $categoryIds]);
+
+        debug($query->sql());
+        dd($query->all());
+    }
+
+    // ----------Automatic IS NULL Creation------
+    public function isNullOrEqualExample()
+    {
+        $mutation = null; // Change this to a JSON string like '{"x":100,"y":200}' to test the `= value` branch
+
+        $query = $this->fetchTable('Blogs')->find()
+            ->where(['mutation IS' => $mutation]);
+
+        debug($query->sql()); // Outputs: WHERE mutation IS NULL (or mutation = :c0)
+        dd($query->all());    // Outputs result
+    }
+
+    //-------------- Automatic IS NOT NULL Creation-------
+    public function isNotNullOrNotEqualExample()
+    {
+        $mutation = null; // Change this to '{"x":100,"y":200}' to test the `!=` behavior
+
+        $query = $this->fetchTable('Blogs')->find()
+            ->where(['mutation IS NOT' => $mutation]);
+
+        debug($query->sql()); // Shows generated SQL (IS NOT NULL or != :c0)
+        dd($query->all());    // Shows matching records
+    }
+
+    //----------- Raw Expressions-----------
+    public function rawExpressionExample()
+    {
+        $query = $this->fetchTable('Blogs')->find();
+
+        // Create an expression: LENGTH(title)
+        $expr = $query->newExpr()->add('CHAR_LENGTH(title)');
+
+        // Select all blog columns and add a computed column
+        $query->select([
+            'id',
+            'title',
+            'title_length' => $expr
+        ]);
+
+        debug($query->sql());  // View the raw SQL
+        dd($query->all());     // Dump the result with calculated title lengths
+    }
+
+    //--------- Using Connection Roles-----------
+    public function queryUsingConnectionRoles()
+    {
+        $blogsTable = $this->fetchTable('Blogs');
+
+        // READ ROLE QUERY
+        $readQuery = $blogsTable->find()
+            ->useReadRole()
+            ->where(['category_id' => 2])
+            ->select(['id', 'title', 'author']);
+
+        // debug('READ ROLE SQL:');
+        // debug($readQuery->sql());
+        debug('READ ROLE RESULT:');
+        debug($readQuery->all());
+
+        // WRITE ROLE QUERY
+        $writeQuery = $blogsTable->find()
+            ->useWriteRole()
+            ->where(['category_id' => 1])
+            ->select(['id', 'title', 'author']);
+
+        // debug('WRITE ROLE SQL:');
+        // debug($writeQuery->sql());
+        debug('WRITE ROLE RESULT:');
+        dd($writeQuery->all());
+    }
+
+    // -----------Expression Conjuction-----------
+    public function expressionConjunctionDemo()
+    {
+        $blogsTable = $this->fetchTable('Blogs');
+
+        $query = $blogsTable->find();
+        $expr = $query->newExpr(['1', '1'])->setConjunction('+');
+
+        // Simple select using custom conjunction (+)
+        $query->select(['two' => $expr]);
+
+        // Example with aggregation: sum of category_id (just as a demo)
+        $query->select(function ($query) {
+            $sumCategoryId = $query->func()->sum('category_id');
+
+            $totalExpression = $query->newExpr(['category_id', 'id'])
+                ->setConjunction('*');  // multiply category_id * id
+
+            return [
+                'Blogs.title',
+                'sum_category_id' => $sumCategoryId,
+                'total_expression' => $query->func()->sum($totalExpression),
+            ];
+        })
+        ->group(['Blogs.id', 'Blogs.title'])
+        ->enableAutoFields(true);
+
+        debug($query->sql());
+        dd($query->all());
+    }
+
+    // ----------Tuple Comparison---------
+    public function tupleComparisonDemo()
+    {
+        $blogsTable = $this->fetchTable('Blogs');
+
+        // Example: Find blogs where (category_id, id) <= (2, 3)
+        $tupleComparison = new TupleComparison(
+            ['category_id', 'id'],
+            [2, 3],
+            ['integer', 'integer'],
+            '<='
+        );
+
+        $query = $blogsTable->find()
+            ->where($tupleComparison)
+            ->select(['id', 'title', 'category_id'])
+            ->order(['category_id' => 'ASC', 'id' => 'ASC']);
+
+        debug($query->sql());
+        dd($query->all());
+    }
+
+    // ------------Getting Results--------
+    public function gettingResultsDemo()
+    {
+        $blogsTable = $this->fetchTable('Blogs');
+
+        // Build a basic query to find all blogs with category_id = 1 order by desc
+        $query = $blogsTable->find()
+            ->where(['category_id' => 1])
+            ->order(['created' => 'DESC']);
+
+        // 1. Iterate over the query results
+        foreach ($query as $blog) {
+            // Just a demonstration - you could process $blog here
+            // debug($blog->title);
+        }
+
+        // 2. Get all results as a collection
+        $allBlogs = $query->all();
+
+        // 3. Use collection methods: map() to get all blog IDs
+        $ids = $allBlogs->map(function ($blog) {
+            return $blog->id;
+        });
+        // debug($ids->toList());
+
+        // 4. Use max() to get the latest created timestamp (assuming created is a DateTime)
+        $maxCreated = $allBlogs->max(function ($blog) {
+            return $blog->created;
+        });
+        // debug($maxCreated);
+
+        // 5. Get just the first blog (LIMIT 1)
+        $firstBlog = $query->first();
+        // debug($firstBlog);
+
+        // 6. Get the first blog or throw an exception if none found
+        try {
+            $firstOrFailBlog = $query->firstOrFail();
+            dd($firstOrFailBlog);
+        } catch (\Cake\Datasource\Exception\RecordNotFoundException $e) {
+            dd('No blog found!');
+        }
+        
+        // Use dd() if you want to stop execution and dump the last value:
+        debug($firstOrFailBlog);
+    }
+
+    // --------------Returning the Total Count of Records--------
+    public function totalCountDemo()
+    {
+        $blogsTable = $this->fetchTable('Blogs');
+
+        // 1. Count all blogs that have mutation set (i.e., not null)
+        $totalWithMutation = $blogsTable->find()
+            ->where(['mutation IS NOT' => null])
+            ->count();
+        debug("Total blogs with mutation: $totalWithMutation");
+
+        // 2. Count blogs for a specific category_id
+        $categoryCount = $blogsTable->find()
+            ->where(['category_id' => 5])
+            ->count();
+        debug("Total blogs in category_id = 5: $categoryCount");
+
+        // 3. Grouped count: count how many blogs in each category
+        $query = $blogsTable->find();
+        $query->select([
+            'category_id',
+            'blog_count' => $query->func()->count('Blogs.id')
+        ])
+        ->groupBy(['category_id']);
+        $groupedCount = $query->count();
+        debug("Number of categories with blogs: $groupedCount");
+
+        // 4. Estimated count (hardcoded for performance or mock use)
+        $estimatedQuery = $blogsTable->find()
+            ->where(['category_id >' => 0])
+            ->counter(function () {
+                return 999; // dummy estimate
+            });
+        $estimated = $estimatedQuery->count();
+        debug("Estimated blog count: $estimated");
+
+        // Optional: Still fetch grouped result
+        $records = $query->all();
+        dd($records);
+        // dd('Done');
+    }
+
+    // ------------Caching Loaded Results-----------
+    public function cacheResultsDemo()
+    {
+        $blogsTable = $this->fetchTable('Blogs');
+
+        // Example 1: Static cache key using default cache config
+        $query = $blogsTable->find()
+            ->where(['category_id' => 1])
+            ->select(['id', 'title', 'category_id'])
+            ->cache('blogs_category_1'); // static cache key
+
+        $results1 = $query->all();
+        debug('Static cache results:');
+        debug($results1);
+
+        // Example 2: Dynamic cache key using a function
+        $query2 = $blogsTable->find()
+            ->where(['category_id' => 2])
+            ->select(['id', 'title', 'category_id'])
+            ->cache(function ($q) {
+                return 'blogs-dynamic-' . md5(serialize($q->clause('where')));
+            });
+
+        $results2 = $query2->all();
+        debug('Dynamic cache results:');
+        dd($results2);
+    }
+
+    // --------------Loading Associations-----------
+    public function eagerLoadingDemo()
+    {
+        $blogsTable = $this->fetchTable('Blogs');
+
+        $query = $blogsTable->find()
+            ->select([
+                'Blogs.id',
+                'Blogs.title',
+                'Blogs.category_id',
+            ])
+            ->contain([
+                'Categories' => [
+                    'fields' => ['Categories.id', 'Categories.name']
+                ],
+                'Posts' => [
+                    'fields' => ['Posts.id', 'Posts.blog_id', 'Posts.title', 'Posts.created']
+                ]
+            ])
+            ->order(['Blogs.id' => 'ASC']);
+
+        $results = $query->all();
+
+        debug($query->sql());
+        dd($results);
+    }
+    public function eagerLoading()
+    {
+        $blogsTable = $this->fetchTable('Blogs');
+
+        $query = $blogsTable->find()
+            ->select([
+                'Blogs.id',
+                'Blogs.title',
+                'Blogs.category_id',
+                'Posts.id',
+                'Posts.blog_id',
+                'Posts.title',
+                'Posts.created'
+            ])
+            ->innerJoinWith('Posts')
+            ->contain(['Categories' => [
+                'fields' => ['Categories.id', 'Categories.name']
+            ]])
+            ->order(['Blogs.id' => 'ASC']);
+
+        $results = $query->all();
+
+        debug($query->sql());
+        dd($results);
+    }
+
+    // --------------Passing Conditions to Contain----------
+    public function containWithConditionsDemo()
+    {
+        $blogsTable = $this->fetchTable('Blogs');
+
+        $query = $blogsTable->find()
+            ->select([
+                'Blogs.id',
+                'Blogs.title',
+                'Blogs.category_id',
+            ])
+            ->contain([
+                'Categories' => function (SelectQuery $q) {
+                    // Select all fields from Categories to ensure full entity hydration
+                    return $q->enableAutoFields();
+                },
+                'Posts' => function (SelectQuery $q) {
+                    return $q
+                        ->select([
+                            'Posts.id',
+                            'Posts.blog_id',
+                            'Posts.title',
+                            'Posts.created',
+                        ])
+                        ->where(['Posts.created >=' => '2025-05-01'])
+                        ->order(['Posts.created' => 'DESC']);
+                }
+            ])
+            ->order(['Blogs.id' => 'ASC']);
+
+        // Debug the generated SQL query for Blogs only
+        debug($query->sql());
+
+        // Dump results including filtered Posts and full Categories
+        dd($query->all());
+    }
+
+    // --------------Sorting Contained Associations---------
+    public function sortedContain()
+    {
+        $blogsTable = $this->fetchTable('Blogs');
+
+        $query = $blogsTable->find()
+            ->select([
+                'Blogs.id',
+                'Blogs.title',
+                'Blogs.category_id',
+            ])
+            ->contain([
+                'Categories' => function (SelectQuery $q) {
+                    return $q->select(['Categories.id', 'Categories.name']);
+                },
+                'Posts' => [
+                    'sort' => ['Posts.created' => 'DESC'],
+                    'queryBuilder' => function (SelectQuery $q) {
+                        return $q->select(['Posts.id', 'Posts.blog_id', 'Posts.title', 'Posts.created']);
+                    }
+                ]
+            ])
+            ->order(['Blogs.id' => 'ASC']);
+
+        debug($query->sql());
+        dd($query->all());
+    }
+
+    // -------------Filtering by Associated Data--------
+    public function filterBlogsWithRecentPosts()
+    {
+        $blogsTable = $this->fetchTable('Blogs');
+
+        $query = $blogsTable->find()
+            ->select([
+                'Blogs.id',
+                'Blogs.title',
+                'Blogs.category_id',
+            ])
+            ->matching('Posts', function (SelectQuery $q) {
+                return $q
+                    ->where(['Posts.created >=' => new DateTime('-7 days')])
+                    ->select(['Posts.id', 'Posts.blog_id', 'Posts.title', 'Posts.created']);
+            })
+            ->contain([
+                'Categories' => function (SelectQuery $q) {
+                    return $q->select(['Categories.id', 'Categories.name']);
+                }
+            ])
+            ->order(['Blogs.id' => 'ASC']);
+
+        debug($query->sql());
+        dd($query->all());
+    }
+
+    // ---------Using innerJoinWith-----------
+    public function filterBlogsWithCategoryJoin()
+    {
+        $filter = ['Categories.name' => 'Technology'];
+
+        $blogsTable = $this->fetchTable('Blogs');
+
+        $query = $blogsTable->find()
+            ->distinct(['Blogs.id']) // Needed for proper deduplication
+            ->contain('Categories', function (SelectQuery $q) use ($filter) {
+                return $q->where($filter);
+            })
+            ->innerJoinWith('Categories', function (SelectQuery $q) use ($filter) {
+                return $q->where($filter);
+            })
+            ->select([
+                'Blogs.id',
+                'Blogs.title',
+                'Blogs.category_id'
+            ]);
+
+        debug($query->sql());
+        dd($query->all());
+    }
+
+    // --------------Using notMatching-----------
+    public function filterBlogsWithoutCategory()
+    {
+        $filter = ['Categories.name' => 'Technology'];
+
+        $blogsTable = $this->fetchTable('Blogs');
+
+        $query = $blogsTable->find()
+            ->notMatching('Categories', function (SelectQuery $q) use ($filter) {
+                return $q->where($filter);
+            })
+            ->select([
+                'Blogs.id',
+                'Blogs.title',
+                'Blogs.category_id'
+            ]);
+
+        debug($query->sql());
+        dd($query->all());
+    }
+
+    // -------------Using leftJoinWith------------
+    public function countPostsPerBlog()
+    {
+        $blogsTable = $this->fetchTable('Blogs');
+
+        $query = $blogsTable->find();
+
+        $query->select([
+                'Blogs.id',
+                'Blogs.title',
+                'total_posts' => $query->func()->count('Posts.id')
+            ])
+            ->leftJoinWith('Posts') // valid association
+            ->groupBy(['Blogs.id'])
+            ->enableAutoFields(true);
+
+        debug($query->sql());
+        dd($query->all());
+    }
+
+    // -----------Adding Joins------------
+    public function joinExample()
+    {
+        $blogsTable = $this->fetchTable('Blogs');
+
+        $query = $blogsTable->find();
+
+        $query->join([
+            'Categories' => [
+                'table' => 'categories',
+                'type' => 'INNER',
+                'conditions' => 'Categories.id = Blogs.category_id',
+            ]
+        ]);
+
+        $query->select([
+            'Blogs.id',
+            'Blogs.title',
+            'Categories.name'
+        ])
+        ->group(['Blogs.id', 'Blogs.title', 'Categories.name']);
+
+        debug($query->sql());
+        $results = $query->all();
+
+        debug($results->toArray());
+        exit; // stop further rendering for debugging
+    }
+    public function leftJoinExample()
+    {
+        $blogsTable = $this->fetchTable('Blogs');
+        $query = $blogsTable->find();
+
+        $query->leftJoin(
+            ['Categories' => 'categories'],
+            ['Categories.id = Blogs.category_id']
+        );
+
+        $query->select([
+            'Blogs.id',
+            'Blogs.title',
+            'Categories.name'
+        ]);
+
+        debug($query->sql());
+        dd($query->all());
+    }
+    public function joinWithTypedConditions()
+    {
+        $blogsTable = $this->fetchTable('Blogs');
+
+        // Format DateTime as string for SQL query
+        $dateLimit = (new \DateTime('-30 days'))->format('Y-m-d H:i:s');
+
+        $query = $blogsTable->find();
+
+        $query->innerJoin(
+            ['c' => 'categories'],
+            ['c.id = Blogs.category_id']
+        );
+
+        // Add condition as string date
+        $query->where([
+            'c.created >=' => $dateLimit,
+        ]);
+
+        $query->select([
+            'Blogs.id',
+            'Blogs.title',
+            'c.name'
+        ]);
+
+        debug($query->sql());
+        dd($query->all());
+    }
+    public function joinWithIdentifier()
+    {
+        $blogsTable = $this->fetchTable('Blogs');
+
+        $query = $blogsTable->find();
+
+        $query->join([
+            'c' => [
+                'table' => 'categories',
+                'type' => 'LEFT',
+                'conditions' => [
+                    'c.id' => new IdentifierExpression('Blogs.category_id'),
+                ],
+            ],
+        ]);
+
+        $query->select([
+            'Blogs.id',
+            'Blogs.title',
+            'c.name',
+        ]);
+
+        debug($query->sql());
+        dd($query->all());
+    }
+
+    // -----------Inserting Data-----------
+    public function addBlogPosts()
+    {
+        // Get the blogs table instance
+        $blogs = $this->getTableLocator()->get('Blogs');
+
+        // Prepare the insert query
+        $query = $blogs->insertQuery();
+
+        // Insert multiple rows using values() chained
+        $query->insert([
+            'title', 
+            'content', 
+            'author', 
+            'created', 
+            'modified', 
+            'mutation', 
+            'category_id'
+        ])
+        ->values([
+            'title' => 'New Blog Post 1',
+            'content' => 'Content for new blog post 1',
+            'author' => 'Author One',
+            'created' => date('Y-m-d H:i:s'),
+            'modified' => date('Y-m-d H:i:s'),
+            'mutation' => null,
+            'category_id' => 1
+        ])
+        ->values([
+            'title' => 'New Blog Post 2',
+            'content' => 'Content for new blog post 2',
+            'author' => 'Author Two',
+            'created' => date('Y-m-d H:i:s'),
+            'modified' => date('Y-m-d H:i:s'),
+            'mutation' => json_encode(['x' => 50, 'y' => 150]),
+            'category_id' => 2
+        ]);
+
+        // Execute the query
+        $result = $query->execute();
+
+        // Debug the result using dd()
+        dd($result);
+    }
+
+    // ----------Updating Data----------
+    public function updateBlog()
+    {
+        // Get the Blogs table instance
+        $blogs = $this->getTableLocator()->get('Blogs');
+
+        // Create an update query
+        $query = $blogs->updateQuery();
+
+        // Update a specific blog with id = 5 (you can change this)
+        $query->set([
+                'title' => 'Updated Blog Title',
+                'content' => 'Updated content here',
+                'modified' => date('Y-m-d H:i:s'),
+                'mutation' => json_encode(['x' => 999, 'y' => 888])
+            ])
+            ->where(['id' => 5]);
+
+        // Execute the query
+        $result = $query->execute();
+
+        // Debug the result
+        dd($result);
+    }
+
+    // ---------Deleting Data--------
+    public function deleteBlog()
+    {
+        $posts = $this->getTableLocator()->get('Posts');
+        $blogs = $this->getTableLocator()->get('Blogs');
+
+        // Step 1: Delete posts with blog_id = 8
+        $posts->deleteQuery()
+            ->where(['blog_id' => 8])
+            ->execute();
+
+        // Step 2: Delete the blog
+        $result = $blogs->deleteQuery()
+            ->where(['id' => 8])
+            ->execute();
+
+        dd($result);
+    }
+
+    // -------SQL Injection Prevention-----------
+    public function safeSearchBlog()
+    {
+        $blogs = $this->getTableLocator()->get('Blogs');
+
+        $userInput = 'Mollit'; // Example search term
+
+        $query = $blogs->find()
+            ->where(function (QueryExpression $exp, Query $q) use ($userInput) {
+                return $exp->like('title', '%' . $userInput . '%');
+            });
+
+        // Fetch all results as an array
+        $results = $query->all()->toArray();
+
+        // Dump SQL, params, and results for debugging
+        debug($query->sql());
+        dd([
+            // 'params' => $query->getValueBinder()->bindings(),
+            'results' => $results,
+        ]);
+    }
+
+    // ------------Binding values---------------
+    public function searchBlogsWithBindings()
+    {
+        $blogsTable = $this->getTableLocator()->get('Blogs');
+
+        // Example user inputs
+        $searchTerm = 'Mollit';
+        $dateLimit = new \DateTime();
+
+        $query = $blogsTable->find()
+            ->select(['id', 'title', 'content', 'author', 'created'])
+            ->where([
+                'Blogs.title LIKE :searchTerm',
+                'Blogs.created <= :dateLimit'
+            ])
+            ->bind(':searchTerm', '%' . $searchTerm . '%', 'string')
+            ->bind(':dateLimit', $dateLimit->format('Y-m-d H:i:s'), 'datetime');
+
+        $results = $query->all()->toArray();
+
+        debug($query->sql());
+        dd([
+            // 'params' => $query->getValueBinder()->bindings(),
+            'results' => $results,
+        ]);
+    }
+
+    // ---------Unions-----------
+    public function unionExample()
+    {
+        $blogs = $this->getTableLocator()->get('Blogs');
+
+        // First query: blogs from category_id = 1
+        $categoryOneBlogs = $blogs->find()
+            ->select(['id', 'title', 'author', 'created'])
+            ->where(['category_id' => 1]);
+
+        // Second query: blogs from category_id = 2
+        $categoryTwoBlogs = $blogs->find()
+            ->select(['id', 'title', 'author', 'created'])
+            ->where(['category_id' => 2]);
+
+        // Combine with UNION (removes duplicates)
+        $unionQuery = $categoryTwoBlogs->union($categoryOneBlogs);
+
+        // Get results
+        $results = $unionQuery->all()->toArray();
+
+        debug($unionQuery->sql());
+        dd( $results);
+    }
+    public function unionAllExample()
+    {
+        $blogs = $this->getTableLocator()->get('Blogs');
+
+        // First query: blogs from category_id = 1
+        $categoryOneBlogs = $blogs->find()
+            ->select(['id', 'title', 'author', 'created'])
+            ->where(['category_id' => 1]);
+
+        // Second query: blogs from category_id = 2
+        $categoryTwoBlogs = $blogs->find()
+            ->select(['id', 'title', 'author', 'created'])
+            ->where(['category_id' => 2]);
+
+        // Combine with UNION ALL (keeps duplicates)
+        $unionAllQuery = $categoryTwoBlogs->unionAll($categoryOneBlogs);
+
+        // Get results
+        $results = $unionAllQuery->all()->toArray();
+
+        debug($unionAllQuery->sql());
+        dd($results);
+    }
+
+    // -----------Intersections------------
+    public function intersectExample()
+    {
+        $blogs = $this->getTableLocator()->get('Blogs');
+
+        $query = $blogs->find()
+            ->select(['id', 'title', 'author', 'created'])
+            ->where([
+                'author' => 'lorem'
+            ]);
+
+        $results = $query->all()->toArray();
+
+        debug($query->sql());
+        dd($results);
+    }
+    public function intersectAllExample()
+    {
+        $blogs = $this->getTableLocator()->get('Blogs');
+
+        // First query: Get blog IDs authored by 'lorem'
+        $byAuthor = $blogs->find()
+            ->select(['id'])
+            ->where(['author' => 'lorem'])
+            ->enableHydration(false)
+            ->all(); // Converts to ResultSetInterface
+
+        $byAuthorIds = (new Collection($byAuthor))->extract('id')->toList();
+
+        // Second query: Get blog IDs created in the last 30 days
+        $recent = $blogs->find()
+            ->select(['id'])
+            ->where(['created >' => new \DateTime('-30 days')])
+            ->enableHydration(false)
+            ->all();
+
+        $recentIds = (new Collection($recent))->extract('id')->toList();
+
+        // Manual intersection of IDs
+        $intersectIds = array_values(array_intersect($byAuthorIds, $recentIds));
+
+        // Get full blog data for intersected IDs
+        $results = $blogs->find()
+            ->where(['id IN' => $intersectIds])
+            ->toArray();
+
+        dd($results);
+    }
+
+    // -------------Subqueries----------
+    public function subqueryExample()
+    {
+        $blogs = $this->getTableLocator()->get('Blogs');
+        $categories = $this->getTableLocator()->get('Categories');
+
+        // Step 1: Create a subquery selecting category IDs with name like 'Tech'
+        $matchingCategory = $categories->find()
+            ->select(['id'])
+            ->distinct()
+            ->where(['name LIKE' => '%Tech%']);
+
+        // Step 2: Main query - Get blogs where category_id is in the subquery
+        $query = $blogs->find()
+            ->where(['category_id IN' => $matchingCategory]);
+
+        // Step 3: Fetch and debug the results
+        $results = $query->all()->toArray();
+
+        debug($query->sql());
+        dd($results);
+    }
+
+    // ----------Adding Locking Statements---------
+    public function lockExample()
+    {
+        $blogs = $this->getTableLocator()->get('Blogs');
+
+        // Query with a lock (FOR UPDATE) - useful in transactional updates
+        $query = $blogs->find()
+            ->where(['author' => 'lorem'])
+            ->epilog('FOR UPDATE'); // Appends "FOR UPDATE" to the SQL
+
+        $results = $query->all()->toArray();
+
+        debug($query->sql());
+        dd($results);
+    }
+
+    // -----------Window Functions-----------
+    public function windowFunctionExample()
+    {
+        $blogs = $this->getTableLocator()->get('Blogs');
+
+        // Define a named window for partitioning by category_id
+        $query = $blogs->find();
+
+        $query->window('per_category', function ($window, $query) {
+            $window->partition('Blogs.category_id');
+            return $window;
+        });
+
+        // Select fields and add window functions
+        $query->select([
+            'Blogs.id',
+            'Blogs.title',
+            'Blogs.category_id',
+            'Blogs.author',
+            'created',
+            'oldest_post' => $query->func()
+                ->min('Blogs.created')
+                ->over('per_category'),
+            'latest_post' => $query->func()
+                ->max('Blogs.created')
+                ->over('per_category'),
+        ]);
+
+        $results = $query->all()->toArray();
+
+        debug($query->sql());
+        dd($results);
+    }
+
+    // ------------Common Table Expressions--------
+    public function cteExample()
+    {
+        $blogs = $this->getTableLocator()->get('Blogs');
+
+        // Base query
+        $query = $blogs->find();
+
+        // Attach a Common Table Expression (CTE)
+        $query->with(function ($cte) use ($blogs) {
+            // Subquery: count of blogs per author
+            $q = $blogs->subquery();
+            $q->select([
+                'blog_count' => $q->func()->count('*'),
+                'author',
+            ])
+            ->groupBy('author');
+
+            // Return CTE
+            return $cte
+                ->name('blogs_per_author')
+                ->query($q);
+        });
+
+        // Final select with join on CTE
+        $query->select([
+            'Blogs.title',
+            'Blogs.author',
+            'blog_count' => 'blogs_per_author.blog_count',
+        ])
+        ->join([
+            'blogs_per_author' => [
+                'table' => 'blogs_per_author',
+                'conditions' => 'blogs_per_author.author = Blogs.author',
+            ],
+        ]);
+
+        // Output results and SQL
+        $results = $query->all()->toArray();
+        debug($query->sql());
+        dd($results);
+    }
 
 
 
