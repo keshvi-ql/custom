@@ -12,6 +12,8 @@ use Cake\ORM\Query\SelectQuery;
 use Cake\Collection\Collection;
 use Cake\Database\Expression\IdentifierExpression;
 use Cake\Database\Expression\TupleComparison;
+use PHP_CodeSniffer\Filters\ExactMatch;
+
 // use Cake\Collection\CollectionInterface;
 // use Cake\I18n\FrozenTime;
 
@@ -1808,7 +1810,6 @@ class BlogsController extends AppController
     $this->set(compact('blog'));
 }
 
-
     /**
      * Edit method
      *
@@ -1851,3 +1852,4 @@ class BlogsController extends AppController
         return $this->redirect(['action' => 'index']);
     }
 }
+
