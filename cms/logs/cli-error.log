@@ -1,0 +1,8 @@
+2025-05-27 06:19:52 error: [Error] Call to undefined method Cake\Routing\Router::scope() in C:\xampp\htdocs\cakeframework\custom\cms\config\routes.php on line 84
+Stack Trace:
+- CORE\src\Http\BaseApplication.php:219
+- CORE\src\Console\CommandRunner.php:371
+- CORE\src\Console\CommandRunner.php:151
+- ROOT\bin\cake.php:10
+- [main]:
+

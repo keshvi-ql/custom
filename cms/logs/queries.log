@@ -1,0 +1,18 @@
+2025-05-28 09:21:14 debug: connection= role=write duration=0.5 rows=3 SELECT * FROM blogs
+2025-05-28 09:22:36 debug: connection= role=write duration=0.3 rows=3 SELECT * FROM blogs
+2025-05-28 09:29:47 debug: connection= role=write duration=0.4 rows=1 SELECT * FROM blogs WHERE id = '1'
+2025-05-28 09:31:11 debug: connection= role=write duration=0.3 rows=1 SELECT * FROM blogs WHERE id = 1
+2025-05-28 09:32:14 debug: connection= role=write duration=0.3 rows=1 SELECT * FROM blogs WHERE id = '1'
+2025-05-28 09:32:24 debug: connection= role=write duration=0.3 rows=1 SELECT * FROM blogs WHERE id = '1'
+2025-05-28 09:32:48 debug: connection= role=write duration=0.4 rows=1 SELECT * FROM blogs WHERE id = '1'
+2025-05-28 09:33:02 debug: connection= role=write duration=0.4 rows=1 SELECT * FROM blogs WHERE id = '1'
+2025-05-28 09:33:14 debug: connection= role=write duration=0.4 rows=1 SELECT * FROM blogs WHERE id = '1'
+2025-05-28 09:37:24 debug: connection= role=write duration=5.5 rows=1 INSERT INTO blogs (title, created, modified) VALUES ('A Raw Inserted Blog', '2025-05-28 09:37:24', '2025-05-28 09:37:24')
+2025-05-28 09:39:48 debug: connection= role=write duration=9.5 rows=1 INSERT INTO blogs (title, content, author, created, modified) VALUES ('A Raw Inserted Blog', 'Lorem', 'Lorem', '2025-05-28 09:39:48', '2025-05-28 09:39:48')
+2025-05-28 09:41:28 debug: connection= role=write duration=0.3 rows=1 SELECT * FROM blogs WHERE id = '1'
+2025-05-28 09:41:29 debug: connection= role=write duration=0.3 rows=1 SELECT * FROM blogs WHERE id = '1'
+2025-05-28 09:41:35 debug: connection= role=write duration=0.3 rows=1 SELECT * FROM blogs WHERE id = '1'
+2025-05-28 09:41:36 debug: connection= role=write duration=3.5 rows=1 UPDATE blogs SET title = 'Updated Title' WHERE id = '5'
+2025-05-28 09:43:38 debug: connection= role=write duration=0.4 rows=1 SELECT * FROM blogs WHERE id = '1'
+2025-05-28 09:43:43 debug: connection= role=write duration=8.4 rows=1 DELETE FROM blogs WHERE id = '4'
+2025-05-28 09:44:40 debug: connection= role=write duration=0.4 rows=0 DELETE FROM blogs WHERE id = '4'
