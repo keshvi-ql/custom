@@ -9,9 +9,14 @@ use Cake\Database\Expression\QueryExpression;
 use Cake\ORM\TableRegistry;
 use DateTime;
 use Cake\ORM\Query\SelectQuery;
+use Cake\Datasource\Exception\RecordNotFoundException;
+use Cake\Http\Exception\NotFoundException;
 use Cake\Collection\Collection;
+use Cake\Datasource\FactoryLocator;
 use Cake\Database\Expression\IdentifierExpression;
 use Cake\Database\Expression\TupleComparison;
+use Cake\I18n\I18n;
+
 use PHP_CodeSniffer\Filters\ExactMatch;
 
 // use Cake\Collection\CollectionInterface;
@@ -1756,6 +1761,90 @@ class BlogsController extends AppController
         debug($query->sql());
         dd($results);
     }
+
+    // ---------------Behavior------------
+    public function testBehavior(): void
+    {
+        $blogsTable = $this->fetchTable('Blogs');
+        $behavior = $blogsTable->behaviors()->get('BlogFormat');
+
+        $slug = $behavior->generateSlug('Test Title For Slug!');
+        
+        dd([
+            'input' => 'Test Title For Slug!',
+            'output_slug' => $slug
+        ]);
+    }
+    public function slugBehavior()
+    {
+        $slug = $this->Blogs->superSlug('Hello World Slug Test');
+        dd($slug); // ✅ Will print 'hello-world-slug-test'
+    }
+    public function testCounterCache()
+    {
+        $blogsTable = TableRegistry::getTableLocator()->get('Blogs');
+        $categoriesTable = TableRegistry::getTableLocator()->get('Categories');
+
+        $blog = $blogsTable->newEmptyEntity();
+        $blog->title = 'Test Blog ' . date('H:i:s');
+        $blog->content = 'This is a test content';
+        $blog->author = 'Test Author';
+        $blog->status = 'published';
+        $blog->is_featured = true;
+        $blog->rating = 4.7;
+        $blog->category_id = 1;
+
+        if ($blogsTable->save($blog)) {
+            try {
+                $category = $categoriesTable->get($blog->category_id);
+                dd($category);
+            } catch (RecordNotFoundException $e) {
+                dd('Category not found');
+            }
+        } else {
+            dd($blog->getErrors());
+        }
+    }
+    public function testTimestamp()
+    {
+        // You do NOT need to call $this->loadModel('Blogs') here
+        // Because when the controller name matches the model, Cake loads the model automatically.
+
+        // Create new blog entity
+        $blog = $this->Blogs->newEmptyEntity();
+
+        $blog->title = 'Test Blog ' . date('H:i:s');
+        $blog->content = 'This is a test content for the blog.';
+        $blog->author = 'Test Author';
+        $blog->category_id = 1;  // Assume category 1 exists
+        $blog->slug = 'test-blog-' . date('His');
+
+        if ($this->Blogs->save($blog)) {
+            dd($blog);
+        } else {
+            dd($blog->getErrors());
+        }
+    }
+    public function testTranslate()
+    {
+        // Set locale to French or any locale you want
+        I18n::setLocale('fr_FR');
+
+        // Get the Blogs table
+        $blogs = TableRegistry::getTableLocator()->get('Blogs');
+
+        try {
+            // Get blog with id=2 (no translations expected)
+            $blog = $blogs->get(1);
+        } catch (RecordNotFoundException $e) {
+            throw new NotFoundException('Blog not found.');
+        }
+
+        // Dump the blog entity, will show default content if no translation exists
+        dd($blog);
+    }
+
+
 
 
 

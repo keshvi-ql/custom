@@ -384,3 +384,463 @@ find('threaded') is a powerful built-in finder that retrieves hierarchical (nest
 Custom Finder Methods in CakePHP 5 are a way to encapsulate reusable and complex query logic directly in your table classess
 
 Dynamic Finders are a convenient shortcut in CakePHP's ORM that let you query your database using method names built from your table's fields, without writing explicit where() conditions.
+
+retrieving associated (related) data — like fetching an article and its author, or users and their comments — is a key ORM feature. 
+
+when you query models using find(), associated (related) data is not loaded by default. To load associated models (like authors of articles or comments on posts), you use contain() — this is called eager loading.
+
+the contain() method is used to eager-load associated data, and you can also filter that associated data using conditions, custom finders, or query options.
+
+when you eager load associated data using contain()—especially for HasMany or BelongsToMany relationships—you may want to sort the associated records.
+
+you want to filter your primary model based on associated data, you use the matching() method instead of contain().
+
+innerJoinWith() is a method used to create an INNER JOIN between your main table and an associated table without fetching the associated data.
+
+notMatching() is the inverse of matching(). It’s used to filter records that do not have related data in a specific association.
+
+leftJoinWith() is used to create a LEFT JOIN SQL clause with one or more associations without fetching associated data into the result.
+
+fetching strategy refers to how associated data is retrieved when using contain() in your queries.
+
+subquery strategy is a method for loading associated data (especially hasMany or belongsToMany) using SQL subqueries instead of standard JOINs or multiple queries.
+
+lazy loading means fetching associated records only when needed, after the main entity has been loaded — instead of loading them all upfront (as done with eager loading via contain()).
+
+when you execute a query using all(), it returns a ResultSet object — specifically, an instance of Cake\ORM\ResultSet.
+This object represents the rows returned by the query and provides powerful manipulation capabilities by behaving like a Collection.
+
+You can easily retrieve the first or last record from that result set using:
+first() – returns the first row
+last() – returns the last row
+
+ResultSet is a collection of entity objects returned from a query. If you want to access a record at a specific position (index) — not just the first or last — you can combine the skip() and first() methods.
+syntax = $row = $resultSet->skip(N)->first();
+
+You can check whether this result set contains any data using the isEmpty() method.
+
+after you fetch some data (like a list of articles or a user), you might later decide to load related data (like comments or posts) without running the main query again.You can do this using the loadInto() method.
+
+when you fetch data using find(), sometimes you want to group, restructure, or analyze that data in a custom way after it's loaded from the database.
+
+Map/Reduce is a feature that allows you to process, transform, or group query results after they are fetched from the database.
+
+Stacking multiple operations means you can keep chaining more query modifiers even after adding a mapReduce() step. You can keep adding:
+Filters (->where())
+Other finders (->find())
+More mapReduce operations (->mapReduce())
+
+Removing All Stacked Map-reduce Operations in CakePHP 5 means clearing out all previously added mapReduce processing functions (mapper and reducer) from a query so that no mapReduce transformations will be applied when the query is executed.
+
+| **Feature**                                  | **Purpose (Short)**                                              |
+| -------------------------------------------- | ---------------------------------------------------------------- |
+| **Debugging Queries and ResultSets**         | Inspect SQL queries and results for troubleshooting.             |
+| **Getting a Single Entity by Primary Key**   | Fetch a row by its primary key (`get()` method).                 |
+| **Using Finders to Load Data**               | Use `find()` for flexible query building.                        |
+| **Getting the First Result**                 | Use `first()` to get the first matching record.                  |
+| **Getting a Count of Results**               | Use `count()` to count matched rows.                             |
+| **Finding Key/Value Pairs**                  | Use `find('list')` to get key-value pairs.                       |
+| **Customize Key-Value Output**               | Define which columns are used as keys/values in lists.           |
+| **Finding Threaded Data**                    | Fetch hierarchical (nested) data (e.g., categories, comments).   |
+| **Custom Finder Methods**                    | Add reusable named query logic in your table class.              |
+| **Dynamic Finders**                          | Auto-generated finders like `findByEmail()`.                     |
+| **Retrieving Associated Data**               | Fetch related records (e.g., user’s posts).                      |
+| **Eager Loading via Contain**                | Load associations in the same query to reduce DB hits.           |
+| **Passing Conditions to Contain**            | Filter associated data inside `contain()`.                       |
+| **Sorting Contained Associations**           | Order associated data within `contain()`.                        |
+| **Filtering via Matching and Joins**         | Filter main records based on associated data.                    |
+| **Using innerJoinWith**                      | Use `INNER JOIN` for filtering by association.                   |
+| **Using notMatching**                        | Get records that do **not** have matching associated data.       |
+| **Using leftJoinWith**                       | Use `LEFT JOIN` to include all records with optional matches.    |
+| **Changing Fetching Strategies**             | Change how associated data is fetched (select, subquery, etc.).  |
+| **Fetching With Subquery Strategy**          | Use subqueries to fetch associations (optimized for large sets). |
+| **Lazy Loading Associations**                | Load associated records only when accessed.                      |
+| **Getting First & Last Record in ResultSet** | Use `first()` and `last()` on result sets.                       |
+| **Getting Arbitrary Index in ResultSet**     | Access result set elements by index like an array.               |
+| **Checking if ResultSet is Empty**           | Use `isEmpty()` to check if results exist.                       |
+| **Loading Additional Associations**          | Add more associations to an already loaded entity.               |
+| **Modifying Results with Map/Reduce**        | Transform result sets using map/reduce functions.                |
+| **Stacking Multiple Operations**             | Combine several transformations or filters.                      |
+| **Removing All Stacked Map/Reduce Ops**      | Reset/clear applied map-reduce logic.                            |
+
+======================================================
+https://chatgpt.com/c/683d6527-cf88-8002-8fd3-eb463b321079
+
+Validating Data in CakePHP 5 refers to the structured process of checking that the data your application receives is correct, complete, and logically valid before saving it to the database.
+
+before data from a request is turned into an entity (i.e., a model object), CakePHP validates it to ensure that it's the correct type, shape, and format.
+
+Creating a default validation set in CakePHP 5 means defining a standard group of validation rules that will be automatically applied when building or updating entities (e.g., when using newEntity() or patchEntity()).
+
+Using a Different Validation Set" means applying a custom set of validation rules—other than the default—to specific scenarios like updating a record, submitting a form, or handling an API request.
+
+when you're saving entities with associated data (like related Users or Comments), you can apply different validation sets to each associated model—not just the main entity.
+
+when saving an entity with associated (related) data, you can apply specific validation rule sets to each associated table/model.
+
+Combining validators in CakePHP 5 means reusing and extending existing validation rules by calling one validation method inside another.
+
+Validation Providers in CakePHP 5 are sources or classes where validation rule methods are defined.
+
+after defining one or more validation sets in your table class (like validationDefault(), validationHardened(), etc.), you can retrieve these validator objects programmatically using the getValidator() method.
+
+Applying Application Rules in CakePHP 5 refers to enforcing business logic and data integrity rules right before saving or deleting an entity in the database.
+
+Rules Checker is used to define application-level rules (also called domain rules) that ensure your data meets business logic before it's saved to the database.
+
+unique field rules are application-level constraints that ensure certain fields (like email, username, etc.) do not have duplicate values in the database.
+
+Foreign Key Rules are application-level constraints defined in the buildRules() method of a Table class to ensure that a related record exists in the foreign (associated) table before saving data.
+
+Association Count Rules are application rules that ensure an associated property (like hasMany or belongsToMany) contains a specific number of related items before saving an entity.
+
+Association Link Constraint Rule is a domain-level rule that allows you to emulate SQL-level constraints at the application layer.
+
+Using Entity Methods as Rules means you can define custom validation or domain logic inside your Entity class as methods, then call these methods as rules when validating or saving data in your Table class.
+
+Using Conditional Rules means you can define application rules that apply only under certain conditions, based on the data or state of the entity being validated or saved.
+
+Creating custom reusable rules in CakePHP 5 means defining your own application/domain validation logic as methods or callable objects that can be added to the rules checker and reused across different tables or entities.
+
+Creating Custom Rule Objects in CakePHP 5 means packaging your domain validation logic into dedicated, reusable PHP classes instead of just closures or methods in the Table class.
+
+Disabling Rules means temporarily turning off the application rules (domain rules) validation when saving an entity.
+
+Validation Checks that the data format, types, and values are correct (e.g., email is valid, required fields are present).
+Application Rules Enforce business logic and data consistency related to application state or existing data.
+
+validation and application rules are typically two separate layers with different purposes:
+   Validation ensures the data format and structure is correct (e.g., an email is valid).
+   Application rules enforce domain or business logic (e.g., email uniqueness).
+
+Validation runs when creating (newEntity()) or updating (patchEntity()) entities from raw data.
+Application rules run automatically when saving entities (save()), to check things like uniqueness or foreign key constraints.
+
+Removing Rules in CakePHP 5 refers to the ability to delete previously added application rules from a RulesChecker instance.
+
+| **Feature**                               | **Purpose (Short)**                                              |
+| ----------------------------------------- | ---------------------------------------------------------------- |
+| **Validating Data**                       | Ensure input data meets expected format before saving.           |
+| **Validating Before Building Entities**   | Validate raw data before creating entity objects.                |
+| **Creating a Default Validation Set**     | Define default validation rules for a table.                     |
+| **Using a Different Validation Set**      | Apply alternate validation logic (e.g., for login).              |
+| **Validation for Associations**           | Use specific validation sets for associated models.              |
+| **Combining Validators**                  | Merge multiple validators into one.                              |
+| **Validation Providers**                  | Use custom classes/methods for validation logic.                 |
+| **Getting Validators From Tables**        | Retrieve validator objects via table methods.                    |
+| **Default Validator Class**               | Override default validator behavior by customizing class.        |
+| **Applying Application Rules**            | Enforce business rules beyond field validation.                  |
+| **Creating a Rules Checker**              | Define rules applied after validation, before saving.            |
+| **Creating Unique Field Rules**           | Ensure a field value is unique in the DB.                        |
+| **Foreign Key Rules**                     | Check if foreign key references exist.                           |
+| **Association Count Rules**               | Validate counts of associated records (e.g., at least one).      |
+| **Association Link Constraint Rule**      | Ensure associated records exist before saving link.              |
+| **Using Entity Methods as Rules**         | Use custom entity methods to define save conditions.             |
+| **Using Conditional Rules**               | Apply rules based on other field values.                         |
+| **Dynamic Error Messages**                | Customize error messages based on condition.                     |
+| **Creating Custom Reusable Rules**        | Define global rule logic usable across models.                   |
+| **Creating Custom Rule Objects**          | Build reusable rule objects using `Rule` class.                  |
+| **Disabling Rules**                       | Temporarily skip application rules for an entity.                |
+| **Validation vs. Application Rules**      | Validation = data structure; Application rules = business logic. |
+| **Using Validation as Application Rules** | Reuse validation logic at application rule level.                |
+| **Removing Rules**                        | Remove specific rules from the rules checker.                    |
+
+===================================================================
+https://chatgpt.com/c/683d9fb0-ae70-8002-8b50-ed30392f068e
+
+saving data typically means storing or updating data in the database using ORM entities and table objects. CakePHP’s ORM makes it easy to interact with your database in an object-oriented way.
+
+A Glance Over Saving Data” refers to an overview of how the framework handles saving data into the database using its ORM (Object-Relational Mapping) system.
+🔹 1. Saving Data via Web Forms
+🔹 2. Saving Data Programmatically (Without Forms)
+
+Inserting data in CakePHP 5 means creating and saving new records (rows) into a database table using the ORM (Object-Relational Mapping) system.
+
+Updating data in CakePHP 5 refers to modifying an existing record in the database using the ORM's entity and table classes. 
+
+Saving with associations in CakePHP 5 refers to the ability of the save() method to persist not just a single entity (like an article), but also its related data (like comments, tags, or authors) — all at once.
+
+associating many-to-many records means linking records from two related tables using a join table. You typically do this with belongsToMany() associations.
+
+unlinking many-to-many records means removing associations between two related entities that are connected via a join table, without deleting the actual records from the related tables.
+
+converting request data into entities means transforming the raw request array data (usually from a form) into structured Entity objects that the ORM (Object-Relational Mapping) can work with — including validation, association handling, and field access control.
+
+Converting BelongsToMany data in CakePHP means turning form or request data into a format that correctly represents many-to-many relationships using the newEntity() or patchEntity() methods.
+
+Converting hasMany data in CakePHP means transforming form/request data into related child entities for a parent entity.
+
+Converting multiple records means turning an array of data—each representing one record—into multiple entity objects at once. This is useful when you want to create or update many records in a single form submission.
+
+Merging request data into entities means updating an existing entity with new data from a request (usually a form).
+
+patchEntity() is a method used to update an existing entity with new data from a request. Before updating, it validates the data to ensure it meets the rules you set.
+
+Patching associations means updating related data (like related comments, tags, or users) inside an entity when you patch it with new request data.
+
+beforeMarshal is an event in CakePHP that lets you change or clean up the data just before CakePHP turns it into entities (objects representing your database records).
+
+The afterMarshal event in CakePHP lets you modify or check an entity after it has been created or updated from the request data but before it is saved.
+
+Validating Data Before Building Entities means checking if the input data is correct and follows certain rules before turning it into an entity that can be saved in the database.
+
+Mass Assignment Attack means when a user sends extra fields in form data that change something they should not be allowed to change (like user_id, role, or is_admin), and your code accidentally accepts those values.
+
+The save() method in CakePHP is used to insert new data or update existing records in your database using entities.
+
+Saving associations means saving related data (like comments, tags, authors) together with the main entity (like an article).
+
+When your entity (like Article) belongs to another entity (like User), you can save both at the same time — this is called saving a belongsTo association.
+
+A hasOne association is used when one record in a table is related to exactly one record in another table. 
+
+A hasMany association means one record relates to multiple records in another table (e.g., an article has many comments). 
+
+A belongsToMany association models a many-to-many relationship using a junction table (e.g., articles_tags).
+
+In CakePHP, when two tables have a belongsToMany relationship, the join table (also called a junction table) connects them.
+
+Complex types like arrays and objects cannot be stored directly in the database.
+To store them, CakePHP uses custom types like JSON to convert (serialize) the data when saving and convert it back (unserialize) when reading.
+
+saveOrFail() is a method in CakePHP's ORM (Cake\ORM\Table) that attempts to save an entity to the database.
+
+findOrCreate() is a method in CakePHP’s ORM (Cake\ORM\Table) that tries to find an existing record matching some search criteria. 
+
+Creating a new database record using an existing primary key value (like a UUID) means you manually set the primary key instead of letting CakePHP generate it automatically.
+
+saveMany() is used to save multiple records (entities) at once in CakePHP, often in a single transaction.
+
+updateAll() is a CakePHP method used to update multiple rows at once in the database without loading entities into memory.
+| **Feature**                                 | **Purpose (Short)**                                                |
+| ------------------------------------------- | ------------------------------------------------------------------ |
+| **A Glance Over Saving Data**               | Overview of how CakePHP handles saving data.                       |
+| **Inserting Data**                          | Save a new entity to the database.                                 |
+| **Updating Data**                           | Save changes to an existing entity.                                |
+| **Saving With Associations**                | Save related records together.                                     |
+| **Associate Many To Many Records**          | Link records in many-to-many associations.                         |
+| **Unlink Many To Many Records**             | Remove links in many-to-many associations.                         |
+| **Converting Request Data into Entities**   | Turn form/request input into entity objects.                       |
+| **Converting BelongsToMany Data**           | Handle incoming many-to-many request data.                         |
+| **Converting HasMany Data**                 | Handle incoming one-to-many request data.                          |
+| **Converting Multiple Records**             | Handle batch entity creation or updates.                           |
+| **Changing Accessible Fields**              | Control which fields can be mass-assigned.                         |
+| **Merging Request Data Into Entities**      | Use `patchEntity()` to update entities with request data.          |
+| **Validation and patchEntity**              | Validate data while patching entities.                             |
+| **Patching HasMany and BelongsToMany**      | Update associated records when patching.                           |
+| **Modifying Data Before Building Entities** | Change request data before converting to entities.                 |
+| **Modifying After Updating From Request**   | Tweak the entity after patching but before saving.                 |
+| **Validating Before Building Entities**     | Run validation on raw data before entity creation.                 |
+| **Avoiding Mass Assignment Attacks**        | Protect sensitive fields from unintended updates.                  |
+| **Saving Entities**                         | Save a single entity to the database.                              |
+| **Saving Associations**                     | Save entity and its associations in one go.                        |
+| **Saving BelongsTo Associations**           | Save parent-related entity.                                        |
+| **Saving HasOne Associations**              | Save directly related single entity.                               |
+| **Saving HasMany Associations**             | Save multiple related records.                                     |
+| **Saving BelongsToMany Associations**       | Save many-to-many related records and links.                       |
+| **Saving Data to Join Table**               | Add extra fields while saving many-to-many associations.           |
+| **Saving Complex Types**                    | Save JSON, array, or custom objects in fields.                     |
+| **Strict Saving**                           | Enforce validation/rule failures with exceptions (`saveOrFail()`). |
+| **Find or Create an Entity**                | Search for a record or create it if not found.                     |
+| **Creating with Existing Primary Key**      | Add a new record using a known primary key.                        |
+| **Saving Multiple Entities**                | Save multiple entities in one operation.                           |
+| **Bulk Updates**                            | Update many rows directly without loading entities.                |
+
+======================================================
+https://chatgpt.com/c/683e9191-2938-8002-876d-777a9c5baf70
+Deleting Data in CakePHP 5 refers to the process of removing records (entities) from the database using the ORM (Table class).
+
+Cascading Deletes are a way to automatically delete associated records (in related tables) when a parent entity is deleted.
+
+Bulk delete refers to the process of deleting multiple records from the database at once.
+
+Strict Deletes This method attempts to delete a single entity and throws an exception if the deletion fails for any reason.
+
+| **Feature**           | **Purpose (Short)**                                                                        |
+| --------------------- | ------------------------------------------------------------------------------------------ |
+| **Deleting Data**     | Remove a single entity or record from the database.                                        |
+| **Cascading Deletes** | Automatically delete associated records (e.g., `HasMany`) when the main record is deleted. |
+| **Bulk Deletes**      | Delete multiple records at once using conditions (without loading entities).               |
+| **Strict Deletes**    | Use `deleteOrFail()` to throw exceptions if delete fails.                                  |
+
+======================================================
+Behaviors 
+
+Behaviors are reusable chunks of logic that can be attached to one or more Table classes to extend their functionality without repeating code.
+🔄 What are Behaviors?
+Behaviors are modular, reusable logic that can be attached to any Table class (like BlogsTable, ArticlesTable, etc.) in CakePHP.
+
+🔧 Why Not Traits?
+Traits are limited — they don’t support event handling (beforeSave, afterSave, etc.), which is crucial for behaviors like TimestampBehavior.
+
+🧠 What Does TimestampBehavior Do?
+It automatically sets date/time fields like created_at and modified_at when saving a record — you don’t need to handle this manually.
+
+mixin methods are public methods defined in a behavior class that become available on the table class where the behavior is attached.
+
+Limiting or Renaming Exposed Mixin Methods in CakePHP 5 refers to controlling which behavior methods are accessible (or “mixed in”) directly on your Table objects, and optionally renaming them to avoid conflicts or provide clearer method names.
+
+Defining Event Listeners in CakePHP 5 means creating methods inside a behavior that automatically respond to specific lifecycle events of a Table or Entity, such as before saving data, after deleting, or before validation.
+
+Defining Finders in CakePHP 5 refers to creating custom query methods inside behaviors (or tables) that simplify retrieving data based on specific criteria.
+
+Event Listeners in behaviors let you hook into ORM lifecycle events, like beforeSave, afterSave, etc.
+
+public methods in a behavior become available on the table using "mixin" methods. If you want to hide them or rename them, you can use the implementedMethods config.
+
+Custom finders are methods that allow you to define reusable query logic. They live in your Table classes or Behaviors, and are named like findSlug(), findActive(), etc.
+
+finder methods allow you to customize how you fetch data (e.g., find('slug') to find by slug). 
+
+when request data is converted (marshalled) into entities, behaviors can customize how specific fields are transformed by implementing the PropertyMarshalInterface. 
+
+behaviors are attached to tables to add reusable functionality. Sometimes, you may want to remove a behavior that was previously attached to a table.
+
+When you attach behaviors to a table in CakePHP, you might want to check which behaviors are currently loaded, verify if a particular behavior is loaded, or get access to a specific behavior instance to call its methods.
+
+Re-configuring loaded behaviors means changing the settings (configuration) of a behavior after it has already been attached (loaded) to a table. 
+| **Feature**               | **Purpose (Very Short)**             |
+| ------------------------- | ------------------------------------ |
+| Using Behaviors           | Add reusable model logic             |
+| Core Behaviors            | Built-in behaviors (e.g., Timestamp) |
+| Creating a Behavior       | Make custom behaviors                |
+| Defining Mixin Methods    | Add methods to table via behavior    |
+| Limiting/Renaming Methods | Control exposed behavior methods     |
+| Defining Event Listeners  | React to model events                |
+| Defining Finders          | Add custom finders                   |
+| Limiting/Renaming Finders | Control finder method exposure       |
+| Transforming Request Data | Modify data before entity creation   |
+| Removing Behaviors        | Detach behaviors at runtime          |
+| Accessing Behaviors       | Get loaded behavior instances        |
+| Re-configuring Behaviors  | Change behavior settings             |
+------------------------------------------
+CounterCache is a feature in CakePHP that automatically keeps a count of related records in a specific column of a related table. 
+
+Basic Usage" refers to the standard or minimal setup required to use a feature or behavior effectively.
+
+Advanced Usage refers to using more sophisticated configurations or custom logic with a CakePHP feature. 
+
+CounterCache works on belongsTo associations by updating a count field on the "parent" table when related records are added or removed.
+
+updateCounterCache() is a method provided by the CounterCacheBehavior.
+It recalculates and updates the cached counter values for all or specific associated records.
+
+| **Topic**                      | **Purpose (Short)**                                                      |
+| ------------------------------ | ------------------------------------------------------------------------ |
+| **CounterCache**               | Automatically keep count of related records in a field.                  |
+| **Basic Usage**                | Auto-update a counter field (e.g., number of comments per post).         |
+| **Advanced Usage**             | Customize which records update the counter and how.                      |
+| **BelongsToMany Usage**        | Use counter cache with many-to-many associations.                        |
+| **Manually Updating Counters** | Explicitly update counters in code when automatic updates aren’t enough. |
+------------------------------------
+The TimestampBehavior is a CakePHP ORM behavior that automatically updates timestamp fields on entities whenever certain events occur, typically:
+created — when a new record is inserted.
+modified (or updated) — when an existing record is updated.
+
+Using and Configuring the Behavior in CakePHP 5 means customizing how a behavior (like TimestampBehavior) works by changing its default settings to fit your application needs.
+
+Touching a record means updating only the timestamp fields (like modified, or any other timestamp configured) of an entity without changing any other data.
+
+TimestampBehavior automatically updates timestamp fields like created and modified.
+
+| **Topic**               | **Purpose**                      |
+| ----------------------- | -------------------------------- |
+| Basic Usage             | Auto-set created/modified times  |
+| Configuring Behavior    | Customize fields and timing      |
+| Updating Timestamps     | Refresh timestamps on change     |
+| Saving Without Updating | Save without changing timestamps |
+
+-------------------------------------
+https://chatgpt.com/c/683fe507-6be0-8002-a66e-910b0dea67be
+TranslateBehavior allows you to store and retrieve translated versions of specific fields (like title, content, etc.) for different languages.
+
+Translation Strategies refer to how CakePHP stores and manages multilingual content using the Translate behavior.
+
+Shadow Table Strategy is one of the two supported strategies for managing multilingual content using the TranslateBehavior
+
+EAV Strategy (Entity-Attribute-Value) is an alternative to the Shadow Table Strategy for storing translations with the TranslateBehavior.
+
+attaching the TranslateBehavior to your tables enables automatic multilingual support for specified fields in your database tables
+
+EAV Strategy for translations, by default it stores all translations in a shared i18n table
+
+"Reading Translated Content" means loading and displaying data in the user’s preferred language using the TranslateBehavior.
+
+when you're using the TranslateBehavior for multilingual content, sometimes you want to retrieve and display all translations of a single record (e.g., for an admin panel where users can edit content in multiple languages at once).
+
+"Limiting the Translations to be Retrieved" refers to restricting which locales (languages) are loaded when you use the TranslateBehavior to fetch translations for a model.
+
+Preventing Retrieval of Empty Translations" is a feature of the TranslateBehavior that controls whether translations with empty strings should overwrite the original field values or not.
+
+"Retrieving All Translations For Associations" means fetching translated content not only for the primary model (e.g., Articles), but also for its related associated models (e.g., Categories) in one single query operation.
+
+"Retrieving one language without using I18n::setLocale" means fetching translated content for a specific locale (language) on a per-table basis without changing the global or application-wide locale setting.
+
+"Querying Translated Fields" refers to the technique of searching or filtering records based on translated content stored via the TranslateBehavior.
+
+"Saving in Another Language" with TranslateBehavior means saving translated versions of fields (like title, body) for a record in a different locale (language) than the default, enabling multilingual content management.
+
+Saving Multiple Translations allows you to add or update translations for multiple languages on a single entity at once, using the TranslateTrait in your entity class and special form inputs.
+
+Validating Translated Entities means applying validation rules specifically to translation records managed by the TranslateBehavior when you create or update translated data through entities.
+
+| **Topic**                                           | **Purpose (Short)**                                                        |
+| --------------------------------------------------- | -------------------------------------------------------------------------- |
+| **Translation Strategies**                          | Different methods to handle multilingual content.                          |
+| **Shadow Table Strategy**                           | Store translations in a separate table mirroring main table.               |
+| **EAV Strategy**                                    | Use Entity-Attribute-Value model for translations.                         |
+| **Attaching Translate Behavior**                    | Enable translation features on your tables.                                |
+| **Quick Tour**                                      | Overview of basic translation usage.                                       |
+| **Using Separate Translations Table (EAV)**         | Store translations in dedicated translations table.                        |
+| **Reading Translated Content**                      | Fetch translated fields transparently.                                     |
+| **Retrieve All Translations for Entity**            | Get all language versions of a record.                                     |
+| **Limiting Translations Retrieved**                 | Restrict which translations are loaded.                                    |
+| **Preventing Retrieval of Empty Translations**      | Skip translations with no content.                                         |
+| **Retrieving Translations for Associations**        | Get translations for related associated records.                           |
+| **Retrieving One Language Without I18n::setLocale** | Fetch translations for a specific language without changing global locale. |
+| **Querying Translated Fields**                      | Search/filter data based on translated fields.                             |
+| **Saving in Another Language**                      | Save translation in a language different from current locale.              |
+| **Saving Multiple Translations**                    | Save multiple language versions at once.                                   |
+| **Validating Translated Entities**                  | Apply validation rules on translated fields/entities.                      |
+-------------------------------
+TreeBehavior is a behavior designed to help you manage and work with hierarchical data stored in a single database table.
+
+TreeBehavior requires your database table to have specific columns to properly store and manage the hierarchical tree structure using the Modified Preorder Tree Traversal (MPTT) technique.
+| Column Name | Type             | Purpose                                                  | Notes                                                                          |
+| ----------- | ---------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `parent_id` | Nullable integer | Stores the ID of the **parent node** for each row        | Should be indexed for performance. Allows building parent-child relationships. |
+| `lft`       | Integer (signed) | Stores the **left boundary** value for nested set logic  | Used internally by TreeBehavior to maintain tree order. Should be indexed.     |
+| `rght`      | Integer (signed) | Stores the **right boundary** value for nested set logic | Also used internally to represent subtree boundaries.                          |
+
+TreeBehavior, getting direct descendants refers to retrieving the immediate child nodes of a given parent node within a hierarchical tree structure.
+
+Finding a path or branch in the tree refers to retrieving the ancestral path (breadcrumb trail) from a specific node up to the root in a hierarchical structure managed by the TreeBehavior.
+
+Configuration for the TreeBehavior refers to customizing the column names that the behavior uses to manage hierarchical data structures like category trees, threaded comments, or nested menus.
+
+Node Level (Depth) in TreeBehavior refers to the hierarchical depth (or level) of a node in a tree structure — that is, how far a node is from the root of the tree.
+
+Scoping and Multi Trees refers to the ability of TreeBehavior to manage multiple independent tree structures within a single database table by applying a scope.
+
+Deletion Behavior in TreeBehavior refers to how tree nodes (and their children) are deleted from the database, and whether ORM callbacks (like beforeDelete and afterDelete) are triggered for each node.
+
+“Recovering with custom sort field” refers to how the TreeBehavior's recover() method rebuilds the lft and rght fields of a tree structure when they are corrupted or out of sync — using a custom sort order instead of the default.
+
+Saving Hierarchical Data refers to how you manage and persist parent-child relationships in a database table using the TreeBehavior
+
+Deleting Nodes refers to how you remove entities from a hierarchical tree when using the TreeBehavior
+
+| **Topic**                        | **Purpose (Short)**                                                 |
+| -------------------------------- | ------------------------------------------------------------------- |
+| **Requirements**                 | Prerequisites for using Tree behavior (e.g., `lft`, `rght` fields). |
+| **A Quick Tour**                 | Overview of Tree behavior features and usage.                       |
+| **Getting Direct Descendents**   | Retrieve immediate child nodes of a tree node.                      |
+| **Getting Formatted Tree Lists** | Get hierarchical lists formatted for dropdowns or menus.            |
+| **Finding a Path or Branch**     | Find ancestors or a subtree from a given node.                      |
+| **Configuration**                | Customize Tree behavior settings (fields, order, etc.).             |
+| **Node Level (Depth)**           | Determine the depth level of nodes in the tree.                     |
+| **Scoping and Multi Trees**      | Handle multiple independent trees within one table.                 |
+| **Deletion Behavior**            | Control what happens to child nodes when deleting a node.           |
+| **Recovering with Custom Sort**  | Repair tree structure using a custom field for sorting.             |
+| **Saving Hierarchical Data**     | Add or update nodes maintaining tree structure.                     |
+| **Deleting Nodes**               | Remove nodes and adjust tree accordingly.                           |

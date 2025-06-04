@@ -82,7 +82,6 @@ class CustomersController extends AppController
         $this->set(compact('customers'));
     }
 
-
     /**
      * View method
      *
@@ -391,5 +390,19 @@ class CustomersController extends AppController
         debug(compact('path', 'query', 'host'));
         die(); // Stop execution to see the output
     }
+
+    // ---------------------Behavior ------------
+    public function testBehavior()
+    {
+        $customer = $this->Customers->newEmptyEntity();
+        $customer = $this->Customers->patchEntity($customer, [
+            'name' => 'Example Customer Name'
+        ]);
+
+        $result = $this->Customers->behaviors()->BlogFormat->formatBlog($customer);
+
+        dd($result);
+    }
+
 
 }

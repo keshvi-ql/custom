@@ -44,6 +44,11 @@ class CustomersTable extends Table
         $this->setPrimaryKey('id');
 
         $this->addBehavior('Timestamp');
+        // $this->addBehavior('BlogFormat');
+        $this->addBehavior('BlogFormat', [
+            'titleField' => 'name',
+            'slugField' => 'slug',
+        ]);
     }
 
     /**

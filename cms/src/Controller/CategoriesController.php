@@ -53,10 +53,10 @@ class CategoriesController extends AppController
     }
 
     //for add and remove json and xml 
-    // public function viewClasses(): array
-    // {
-    //     return [JsonView::class, XmlView::class];
-    // }
+    public function viewClasses(): array
+    {
+        return [JsonView::class, XmlView::class];
+    }
     public function index()
     {
         $query = $this->Categories->find();
