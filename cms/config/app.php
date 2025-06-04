@@ -66,7 +66,7 @@ return [
             'locales' => [RESOURCES . 'locales' . DS],
         ],
     ],
-
+    
     /*
      * Security and encryption configuration
      *

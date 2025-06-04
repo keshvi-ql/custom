@@ -844,3 +844,69 @@ Deleting Nodes refers to how you remove entities from a hierarchical tree when u
 | **Recovering with Custom Sort**  | Repair tree structure using a custom field for sorting.             |
 | **Saving Hierarchical Data**     | Add or update nodes maintaining tree structure.                     |
 | **Deleting Nodes**               | Remove nodes and adjust tree accordingly.                           |
+=======================================
+Debugging 
+
+Debugging is the act of inspecting your application’s internal state to find and fix issues.
+
+basic debugging is made easier through several globally available helper functions.
+| Function       | Purpose                              | Notes                                            |
+| -------------- | ------------------------------------ | ------------------------------------------------ |
+| `debug()`      | Outputs variable with file/line info | Optional HTML output, only in debug mode         |
+| `dd()`         | `debug()` + `exit()`                 | Stops execution                                  |
+| `pr()`         | Simple readable output (`print_r()`) | No file/line info                                |
+| `pj()`         | Prints data as JSON                  | Great for APIs or JS debugging                   |
+| `stackTrace()` | Shows a backtrace                    | Helps identify how code was reached              |
+| `breakpoint()` | CLI interactive debugging shell      | Needs PsySH; for live inspection during CLI runs |
+
+Debugger class refers to leveraging the powerful features provided by Cake\Error\Debugger to customize how debugging information is displayed, masked, and linked to your development tools like editors.
+
+Masking Data refers to the process of hiding or obfuscating sensitive information when outputting debug data or error pages. 
+
+Debugger::log() is a static method that helps you log variables or data along with a detailed stack trace into CakePHP’s log files (usually logs/debug.log). 
+
+Generating stack traces means capturing the sequence of method/function calls that led to a certain point in your application. 
+
+Debugger::excerpt() method, which allows you to extract a snippet of source code from a file around a specific line number.
+
+Editor Integration in CakePHP 5 is a feature that allows error and exception pages to include clickable links that open the corresponding source files directly in your code editor or IDE, right at the specific line where the error occurred.
+
+Logging lets you write messages to files (like debug.log or error.log) to trace what your application is doing.
+| **Topic**                     | **Purpose (Short)**                         |
+| ----------------------------- | ------------------------------------------- |
+| **Basic Debugging**           | Simple techniques to inspect code and data. |
+| **Using the Debugger Class**  | Use CakePHP’s built-in Debugger utilities.  |
+| **Outputting Values**         | Print variables for inspection.             |
+| **Masking Data**              | Hide sensitive info in debug output.        |
+| **Logging With Stack Traces** | Log messages with detailed call traces.     |
+| **Generating Stack Traces**   | Create trace info to track code execution.  |
+| **Getting Excerpt From File** | Show snippets from source files in errors.  |
+| **Editor Integration**        | Link error output to code editor.           |
+| **Using Logging to Debug**    | Use logs to troubleshoot issues.            |
+| **Debug Kit**                 | CakePHP’s debugging toolbar and toolkit.    |
+===============================
+DebugKit 
+
+DebugKit is an official CakePHP plugin that provides a powerful and user-friendly debugging toolbar and enhanced debugging tools integrated right into your application’s web interface.
+   => Install via Composer (in your app root folder):
+         php composer.phar require --dev cakephp/debug_kit "~5.0"
+   => Run this command to load DebugKit plugin:
+         bin/cake plugin load DebugKit
+
+DebugKit configuration settings allow you to customize how the debugging toolbar behaves.
+
+Database Configuration for DebugKit refers to how and where DebugKit stores the debugging data (like SQL queries, request/response info, and panel data).
+=================================================
+https://chatgpt.com/c/683ff60e-2880-8002-a773-3b14baaf693c
+Mailer class is a powerful and flexible way to send emails from your application.
+
+The Cake\Mailer\Mailer class is used to construct and send emails. It supports method chaining, meaning each method call returns the $mailer object itself so you can continue chaining calls together.
+
+"Choosing the Sender" refers to how you define who is technically sending the email (the Sender header) — especially important when the visible "From" email is different from the actual email server you're using to send the email.
+
+Configuration in CakePHP 5 Mailer refers to the way you define email profiles (like default, support, etc.) and transport methods (like SMTP, Mail, Debug) centrally — instead of writing SMTP settings manually in every controller or service.
+
+Configuration profiles in CakePHP let you define reusable email settings (e.g., from, to, subject, etc.) in one place. 
+Instead of setting them manually in code every time, you create a named profile (default, support, etc.) and simply call it in your mailer logic.
+
+ CakePHP 5, you can customize email headers using the setHeaders() and addHeaders() methods from the Mailer class. Headers are key-value pairs that are sent along with the email metadata.

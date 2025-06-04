@@ -3,7 +3,12 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Mailer\CustomerMailer; 
 use Cake\Event\EventInterface;
+use Cake\Mailer\Mailer;
+use Cake\Mailer\Message;
+use Cake\Datasource\Exception\RecordNotFoundException;
+use Cake\Http\Exception\InternalErrorException;
 use function Cake\I18n\toDate;
 /**
  * Customers Controller
@@ -404,5 +409,90 @@ class CustomersController extends AppController
         dd($result);
     }
 
+    // --------------mailer------------------
+    public function sendMailTest()
+    {
+        // Dummy customer entity (you can use actual DB data instead)
+        $customer = new \Cake\ORM\Entity([
+            'name' => 'Test User',
+            'email' => 'keshvi.g@queueloopsolutions.com'
+        ]);
 
+        // Create mailer and send email
+        $mailer = new CustomerMailer();
+        $result = $mailer->send('welcome', [$customer]);
+
+        // Debug mailer result
+        dd($result);
+    }
+
+    // Basic Usage
+    public function sendTestEmail()
+    {
+        try {
+            $mailer = new Mailer('default');
+
+            $mailer->setFrom(['keshvigami106@gmail.com' => 'CakePHP Mail Test'])
+                ->setTo('keshvi.g@queueloopsolutions.com', 'Recipient Name')
+                ->addTo('keshvigami1@gmail.com', 'Second Recipient') // adds without replacing
+                ->setSubject('Testing CakePHP 5 Mailer')
+                ->deliver('This is a test message sent using CakePHP 5 Mailer.');
+
+            dd('Email sent successfully!');
+        } catch (\Exception $e) {
+            dd('Email send failed: ' . $e->getMessage());
+        }
+    }
+
+    // custom header
+    public function sendCustomHeaderMail()
+    {
+        $mailer = new Mailer('default');
+
+        // Set headers
+        $mailer->setHeaders([
+            'X-App-Version' => '1.5.3',
+            'X-User-ID' => '5678'
+        ]);
+
+        $mailer->addHeaders([
+            'X-Tracking-ID' => 'email-20250604-001',
+            'X-Source' => 'CakeStudio'
+        ]);
+
+        // Setup mail and send
+        try {
+            $result = $mailer->setFrom(['keshvigami106@gmail.com' => 'Cake Studio'])
+                ->setTo('keshvi.g@queueloopsolutions.com')
+                ->setSubject('Testing Custom Headers')
+                ->deliver('This email includes custom headers.');
+
+            dd($result); // dump & die to view the result
+        } catch (\Exception $e) {
+            dd('Mail Error: ' . $e->getMessage());
+        }
+    }
+
+    public function sendWelcomeEmail()
+    {
+        $mailer = new Mailer('default');
+
+        $mailer
+            ->setEmailFormat('both')
+            ->setTo('keshvi.g@queueloopsolutions.com')
+            ->setFrom(['keshvigami106@gmail.com' => 'Cake Studio App'])
+            ->setSubject('Welcome to Cake Studio!')
+            ->setViewVars(['username' => 'JohnDoe', 'activationCode' => 'ABC123'])
+            ->viewBuilder()
+                ->setTemplate('welcome') // will use templates/email/html/welcome.php
+                ->setLayout('fancy')     // will use templates/layout/email/html/fancy.php
+                ->addHelpers(['Html', 'Text']);
+
+          // Render email content (html or text)
+    $htmlContent = $mailer->render('html');  // gets the rendered HTML content
+    $textContent = $mailer->render('text');  // gets the rendered plain text content
+
+         // Debug rendered email content
+    dd(compact('htmlContent'));
+    }
 }

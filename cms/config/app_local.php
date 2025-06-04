@@ -96,12 +96,23 @@ return [
      */
     'EmailTransport' => [
         'default' => [
-            'host' => 'localhost',
-            'port' => 25,
-            'username' => null,
-            'password' => null,
-            'client' => null,
-            'url' => env('EMAIL_TRANSPORT_DEFAULT_URL', null),
+            'className' => 'Smtp',
+            'host' => 'smtp.gmail.com',
+            'port' => 587,
+            'username' => 'keshvigami106@gmail.com',
+            'password' => 'avmr kemn ldct ezkn',
+            'tls' => true,
+            // 'client' => null,
+            // 'timeout' => 30,
+        ],
+    ],
+    'Email' => [
+        'default' => [
+            'transport' => 'default',
+            'from' => ['keshvigami106@gmail.com' => 'custom'],
+            'emailFormat' => 'html',
+            // 'charset' => 'utf-8',
+            // 'headerCharset' => 'utf-8',
         ],
     ],
 ];

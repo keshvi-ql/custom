@@ -7,6 +7,7 @@ use Cake\ORM\Locator\LocatorAwareTrait;
 use Cake\ORM\Query;
 use Cake\Database\Expression\QueryExpression;
 use Cake\ORM\TableRegistry;
+use Cake\Error\Debugger;
 use DateTime;
 use Cake\ORM\Query\SelectQuery;
 use Cake\Datasource\Exception\RecordNotFoundException;
@@ -1844,8 +1845,25 @@ class BlogsController extends AppController
         dd($blog);
     }
 
+    // -------------Debugging------------
+    public function debugPlain()
+    {
+        // Disable auto-rendering and layout
+        $this->autoRender = false;
+        $this->viewBuilder()->disableAutoLayout();
 
+        // Set content type via Response object
+        $this->response = $this->response->withType('text/plain');
 
+        // Prepare your data
+        $data = ['apple', 'banana', 'cherry'];
+
+        // Dump the data (plain text)
+        Debugger::dump($data);
+
+        // Stop script execution so no other output is sent
+        exit;
+    }
 
 
     /**
