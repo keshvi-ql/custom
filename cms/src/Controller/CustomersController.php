@@ -482,17 +482,121 @@ class CustomersController extends AppController
             ->setTo('keshvi.g@queueloopsolutions.com')
             ->setFrom(['keshvigami106@gmail.com' => 'Cake Studio App'])
             ->setSubject('Welcome to Cake Studio!')
-            ->setViewVars(['username' => 'JohnDoe', 'activationCode' => 'ABC123'])
+            ->setViewVars([
+                'username' => 'KeshviGami',
+                'activationCode' => 'KESHVI123'
+            ])
             ->viewBuilder()
-                ->setTemplate('welcome') // will use templates/email/html/welcome.php
-                ->setLayout('fancy')     // will use templates/layout/email/html/fancy.php
+                ->setTemplate('welcome') // templates/email/html/welcome.php
+                ->setLayout('fancy')     // templates/layout/email/html/fancy.php
                 ->addHelpers(['Html', 'Text']);
 
-          // Render email content (html or text)
-    $htmlContent = $mailer->render('html');  // gets the rendered HTML content
-    $textContent = $mailer->render('text');  // gets the rendered plain text content
+        try {
+            // Send the email
+            $result = $mailer->deliver(); // This actually sends the email
 
-         // Debug rendered email content
-    dd(compact('htmlContent'));
+            // Debug email result
+            dd([
+                'status' => $result,
+                'to' => $mailer->getTo(),
+                'subject' => $mailer->getSubject(),
+            ]);
+        } catch (\Exception $e) {
+            dd([
+                'error' => $e->getMessage()
+            ]);
+        }
     }
+
+    // with attachment logo pdf file 
+    public function prepareWelcomeEmailWithAttachment(): Mailer
+    {
+        $mailer = new Mailer('default');
+
+        $attachments = [];
+
+        // Manual PDF (Default attach)
+        $manualPath = WWW_ROOT . 'files/manual.pdf';
+        if (file_exists($manualPath)) {
+            $attachments[] = $manualPath;
+        }
+
+        // Brochure with custom filename
+        $brochurePath = WWW_ROOT . 'files/product_brochure.pdf';
+        if (file_exists($brochurePath)) {
+            $attachments['brochure.pdf'] = $brochurePath;
+        }
+
+        // Inline image
+        $logoPath = WWW_ROOT . 'img/logo.png';
+        if (file_exists($logoPath)) {
+            $attachments['logo.png'] = [
+                'file' => $logoPath,
+                'mimetype' => 'image/png',
+                'contentId' => 'logo-img'
+            ];
+        }
+
+        // Raw data attachment (no need to check file system)
+        $attachments['info.txt'] = [
+            'data' => 'This file is generated from plain text.',
+            'mimetype' => 'text/plain'
+        ];
+
+        $mailer
+            ->setEmailFormat('both')
+            ->setTo('keshvi.g@queueloopsolutions.com')
+            ->setFrom(['keshvigami106@gmail.com' => 'Custom App'])
+            ->setSubject('Welcome to QueueLoop Solutions!')
+            ->setViewVars([
+                'username' => 'keshvi',
+                'activationCode' => 'KESHVI123'
+            ])
+            ->setAttachments($attachments);
+
+        $mailer->viewBuilder()
+            ->setTemplate('welcome') // templates/email/html/welcome.php
+            ->setLayout('fancy')     // templates/layout/email/html/fancy.php
+            ->addHelpers(['Html', 'Text']);
+
+        return $mailer;
+    }
+
+    public function sendWelcomeEmailWithAttachment()
+    {
+        $mailer = $this->prepareWelcomeEmailWithAttachment();
+
+        // Get subject and attachments info
+        $subject = $mailer->getSubject();
+        $attachments = $mailer->getAttachments();
+
+        try {
+            $result = $mailer->deliver();
+
+            if ($result) {
+                dd([
+                    'message' => 'Email sent successfully!',
+                    'subject' => $subject,
+                    'attachments' => $attachments,
+                ]);
+            } else {
+                dd([
+                    'message' => 'Email failed to send.',
+                    'subject' => $subject,
+                    'attachments' => $attachments,
+                ]);
+            }
+        } catch (\Exception $e) {
+            dd([
+                'message' => 'Email sending error: ' . $e->getMessage(),
+                'subject' => $subject,
+                'attachments' => $attachments,
+            ]);
+        }
+    }
+
+
+
+
+
 }
