@@ -36,5 +36,3 @@
 
 <p>Best regards,<br>
 The QueueLoop Solutions Team</p>
-
-

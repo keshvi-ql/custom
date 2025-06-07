@@ -115,10 +115,10 @@ return [
             // 'headerCharset' => 'utf-8',
         ],
     ],
-    'EmailTransport' => [
-        'custom' => [
-            'className' => \App\Mailer\Transport\MyCustomTransport::class,
-        ],
-    ],
+    // 'EmailTransport' => [
+    //     'custom' => [
+    //         'className' => \App\Mailer\Transport\MyCustomTransport::class,
+    //     ],
+    // ],
 
 ];
